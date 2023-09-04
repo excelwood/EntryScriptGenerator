@@ -1,0 +1,58 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEditor.UIElements;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace EntryScriptGenerator.Editor
+{
+    public class EntryScriptGenerator : EditorWindow
+    {
+        private EntryScriptSettings _entryScriptSettings;
+        private ScriptGenerator _scriptGenerator;
+        private FolderGenerator _folderGenerator;
+        
+        [MenuItem("Tools/EntryScriptGenerator")]
+        private static void OpenWindow() {
+            var window = GetWindow(typeof(EntryScriptGenerator), false, "EntryScriptGenerator");
+            window.Show();
+        }
+        
+        private void OnEnable()
+        {
+            _entryScriptSettings = EntryScriptSettings.CreateInstance(this);
+            _scriptGenerator = ScriptGenerator.CreateInstance(this, _entryScriptSettings);
+            _folderGenerator = FolderGenerator.CreateInstance(this, _entryScriptSettings);
+        }
+
+        private void OnDisable()
+        {
+            _entryScriptSettings.Dispose();
+            _scriptGenerator.Dispose();
+            _folderGenerator.Dispose();
+        }
+
+        
+        private void OnGUI()
+        {
+            _entryScriptSettings.OnGUI();
+            
+            switch (_entryScriptSettings.SelectedTab)
+            {
+                // ScriptGenerator
+                case ToolTab.ScriptGenerator:
+                    _scriptGenerator.OnGUI();
+                    break;
+                case ToolTab.FolderGenerator:
+                    _folderGenerator.OnGUI();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
+}
