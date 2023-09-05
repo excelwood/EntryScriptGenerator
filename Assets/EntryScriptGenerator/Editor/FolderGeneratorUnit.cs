@@ -27,7 +27,11 @@ namespace EntryScriptGenerator.Editor
     
     public class FolderGeneratorUnit : GeneratorUnit
     {
+        [SerializeField] private bool generateTarget = true;
+        [SerializeField] private bool allowUnsafeCode;
+        [SerializeField] private bool autoReferenced;
         [SerializeField] private bool noEngineReferences;
+        [SerializeField] private string rootNamespace;
         [SerializeField] private List<AssemblyDefinitionAsset> references;
 
         private string _unitName;
@@ -82,24 +86,32 @@ namespace EntryScriptGenerator.Editor
             
             GUILayout.Label(_unitName, EditorStyles.boldLabel);
             EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
-            {
-                var property = _so.FindProperty("noEngineReferences");
-                EditorGUILayout.PropertyField(property, true);
-            }
+            EditorGUILayout.PropertyField(_so.FindProperty("generateTarget"), true);
+            EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
+            EditorGUILayout.PropertyField(_so.FindProperty("allowUnsafeCode"), true);
+            EditorGUILayout.PropertyField(_so.FindProperty("autoReferenced"), true);
+            EditorGUILayout.PropertyField(_so.FindProperty("noEngineReferences"), true);
+            EditorGUILayout.PropertyField(_so.FindProperty("rootNamespace"), true);
             _referenceReorderableList.DoLayoutList();
             EditorGUILayout.EndVertical();
-            
+            EditorGUILayout.EndVertical();
             _so.ApplyModifiedProperties();
         }
 
         public void PublishAssemblyDefinition(string targetPath)
         {
+            if (!_so.FindProperty("generateTarget").boolValue)
+            {
+                return;
+            }
+            
             var asmdefJson = new AssemblyDefinitionJsonData();
             var fileName = asmdefJson.name = _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." + UnitName : UnitName;
-            {
-                var property = _so.FindProperty("noEngineReferences");
-                asmdefJson.noEngineReferences = property.boolValue;
-            }
+            
+            asmdefJson.allowUnsafeCode = _so.FindProperty("allowUnsafeCode").boolValue;
+            asmdefJson.autoReferenced = _so.FindProperty("autoReferenced").boolValue;
+            asmdefJson.noEngineReferences = _so.FindProperty("noEngineReferences").boolValue;
+            asmdefJson.rootNamespace = _so.FindProperty("rootNamespace").stringValue;
             {
                 var references = _referenceReorderableList.serializedProperty;
                 for (var i=0; i<references.arraySize; i++)
