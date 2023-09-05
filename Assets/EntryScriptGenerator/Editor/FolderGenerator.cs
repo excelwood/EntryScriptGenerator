@@ -54,6 +54,10 @@ namespace EntryScriptGenerator.Editor
                 }
                 {
                     var property = _so.FindProperty("generateFolderName");
+                    if (path.Length > 0)
+                    {
+                        path += ".";
+                    }
                     path += property.stringValue;
                 }
                 
