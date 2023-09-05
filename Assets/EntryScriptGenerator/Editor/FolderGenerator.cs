@@ -65,6 +65,8 @@ namespace EntryScriptGenerator.Editor
             }
         }
 
+        public string GenerateFolderRoot => generateTargetPath + "/" + generateFolderName;
+
         private void Initialize(EntryScriptGenerator entryScriptGenerator, EntryScriptSettings entryScriptSettings)
         {
             base.Initialize();
@@ -174,7 +176,7 @@ namespace EntryScriptGenerator.Editor
 
         private void Execute()
         {
-            var targetPathRoot = generateTargetPath + "/" + generateFolderName;
+            var targetPathRoot = GenerateFolderRoot;
             
             if (Directory.Exists(targetPathRoot))
             {

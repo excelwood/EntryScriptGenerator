@@ -139,8 +139,9 @@ namespace EntryScriptGenerator.Editor
             }
             
             var asmdefJson = new AssemblyDefinitionJsonData();
-            var fileName = asmdefJson.name = _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." + UnitName : UnitName;
-            
+            var fileName = _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." : "";
+            fileName += _entryScriptSettings.InterfaceFolderNames.Exists(t => t == UnitName) ? "Interfaces." + UnitName : UnitName;
+            asmdefJson.name = fileName;
             asmdefJson.allowUnsafeCode = _so.FindProperty("allowUnsafeCode").boolValue;
             asmdefJson.autoReferenced = _so.FindProperty("autoReferenced").boolValue;
             asmdefJson.noEngineReferences = _so.FindProperty("noEngineReferences").boolValue;
@@ -157,16 +158,16 @@ namespace EntryScriptGenerator.Editor
                 {
                     foreach (var selectedDependency in selectedDependencies)
                     {
-                        var dependencyAsmdefFilePath = targetPath;
-                        dependencyAsmdefFilePath = dependencyAsmdefFilePath.Remove(dependencyAsmdefFilePath.Length - UnitName.Length, UnitName.Length);
-                        if (((List<string>)_entryScriptSettings.InterfaceFolderNames).Exists(t =>
-                                t == selectedDependency))
+                        var dependencyFileName = _entryScriptSettings.InterfaceFolderNames.Exists(t => t == selectedDependency) ? "Interfaces." + selectedDependency : selectedDependency;
+                        
+                        var dependencyAsmdefFilePath = _folderGenerator.GenerateFolderRoot.Length > 0 ? _folderGenerator.GenerateFolderRoot + "/" : _folderGenerator.GenerateFolderRoot;
+                        if (_entryScriptSettings.InterfaceFolderNames.Exists(t => t == selectedDependency))
                         {
                             dependencyAsmdefFilePath += "Interfaces/";
                         }
                         
                         dependencyAsmdefFilePath += selectedDependency + "/";
-                        dependencyAsmdefFilePath += _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." + selectedDependency : selectedDependency;
+                        dependencyAsmdefFilePath += _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." + dependencyFileName : dependencyFileName;
                         dependencyAsmdefFilePath += ".asmdef";
                         if (File.Exists(dependencyAsmdefFilePath))
                         {
