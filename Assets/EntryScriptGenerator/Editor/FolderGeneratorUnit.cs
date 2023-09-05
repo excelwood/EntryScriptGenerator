@@ -159,6 +159,12 @@ namespace EntryScriptGenerator.Editor
                     {
                         var dependencyAsmdefFilePath = targetPath;
                         dependencyAsmdefFilePath = dependencyAsmdefFilePath.Remove(dependencyAsmdefFilePath.Length - UnitName.Length, UnitName.Length);
+                        if (((List<string>)_entryScriptSettings.InterfaceFolderNames).Exists(t =>
+                                t == selectedDependency))
+                        {
+                            dependencyAsmdefFilePath += "Interfaces/";
+                        }
+                        
                         dependencyAsmdefFilePath += selectedDependency + "/";
                         dependencyAsmdefFilePath += _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." + selectedDependency : selectedDependency;
                         dependencyAsmdefFilePath += ".asmdef";
