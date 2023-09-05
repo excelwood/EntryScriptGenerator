@@ -82,12 +82,12 @@ namespace EntryScriptGenerator.Editor
             _classFolderGeneratorUnits.Clear();
             foreach (var interfaceFolderName in _entryScriptSettings.InterfaceFolderNames)
             {
-                var folderGeneratorUnit = FolderGeneratorUnit.CreateInstance(this, interfaceFolderName);
+                var folderGeneratorUnit = FolderGeneratorUnit.CreateInstance(_entryScriptSettings, this, interfaceFolderName);
                 _interfaceFolderGeneratorUnits.Add(folderGeneratorUnit);
             }
             foreach (var classFolderName in _entryScriptSettings.ClassFolderNames)
             {
-                var folderGeneratorUnit = FolderGeneratorUnit.CreateInstance(this, classFolderName);
+                var folderGeneratorUnit = FolderGeneratorUnit.CreateInstance(_entryScriptSettings, this, classFolderName);
                 _classFolderGeneratorUnits.Add(folderGeneratorUnit);
             }
         }
@@ -180,24 +180,42 @@ namespace EntryScriptGenerator.Editor
             {
                 FileUtility.DeleteDirectory(targetPathRoot, true);
             }
-            
-            FileUtility.CreateDirectory(targetPathRoot);
-            if (_interfaceFolderGeneratorUnits.Count > 0)
+
+            // フォルダー作成とAsmdefの書き出しを行う
             {
-                FileUtility.CreateDirectory(targetPathRoot + "/Interfaces");
+                FileUtility.CreateDirectory(targetPathRoot);
+                if (_interfaceFolderGeneratorUnits.Count > 0)
+                {
+                    FileUtility.CreateDirectory(targetPathRoot + "/Interfaces");
+                    foreach (var interfaceUnit in _interfaceFolderGeneratorUnits)
+                    {
+                        var path = targetPathRoot + "/Interfaces/" + interfaceUnit.UnitName;
+                        FileUtility.CreateDirectory(path);
+                        interfaceUnit.PublishAssemblyDefinition(path);
+                    }
+                }
+            
+                foreach (var classUnit in _classFolderGeneratorUnits)
+                {
+                    var path = targetPathRoot + "/" + classUnit.UnitName;
+                    FileUtility.CreateDirectory(path);
+                    classUnit.PublishAssemblyDefinition(path);
+                }
+            }
+
+            // Asmdef生成後に依存関係を解決するために再書き出し
+            {
                 foreach (var interfaceUnit in _interfaceFolderGeneratorUnits)
                 {
                     var path = targetPathRoot + "/Interfaces/" + interfaceUnit.UnitName;
-                    FileUtility.CreateDirectory(path);
                     interfaceUnit.PublishAssemblyDefinition(path);
                 }
-            }
             
-            foreach (var classUnit in _classFolderGeneratorUnits)
-            {
-                var path = targetPathRoot + "/" + classUnit.UnitName;
-                FileUtility.CreateDirectory(path);
-                classUnit.PublishAssemblyDefinition(path);
+                foreach (var classUnit in _classFolderGeneratorUnits)
+                {
+                    var path = targetPathRoot + "/" + classUnit.UnitName;
+                    classUnit.PublishAssemblyDefinition(path);
+                }
             }
             
             AssetDatabase.Refresh();

@@ -33,33 +33,46 @@ namespace EntryScriptGenerator.Editor
         [SerializeField] private bool noEngineReferences;
         [SerializeField] private string rootNamespace;
         [SerializeField] private List<AssemblyDefinitionAsset> references;
+        [SerializeField] private List<string> selectedDependencies;
 
         private string _unitName;
         public string UnitName => _unitName;
+        private EntryScriptSettings _entryScriptSettings;
         private FolderGenerator _folderGenerator;
 
         private ReorderableList _referenceReorderableList;
+        private ReorderableList _dependenciesReorderableList;
+
+        private readonly List<string> _selectableDependencies = new();
         
         protected override string SettingJsonPath => "Assets/EntryScriptGenerator/Editor/SaveData/FolderGenerateUnit" + _unitName + "Settings.json";
         
-        public static FolderGeneratorUnit CreateInstance(FolderGenerator folderGenerator, string unitName)
+        public static FolderGeneratorUnit CreateInstance(EntryScriptSettings entryScriptSettings, FolderGenerator folderGenerator, string unitName)
         {
             var instance = CreateInstance<FolderGeneratorUnit>();
-            instance.Initialize(folderGenerator, unitName);
+            instance.Initialize(entryScriptSettings, folderGenerator, unitName);
             return instance;
         }
 
-        private void Initialize(FolderGenerator folderGenerator, string unitName)
+        private void Initialize(EntryScriptSettings entryScriptSettings, FolderGenerator folderGenerator, string unitName)
         {
+            _entryScriptSettings = entryScriptSettings;
             _folderGenerator = folderGenerator;
             _unitName = unitName;
+            
+            _selectableDependencies.AddRange(_entryScriptSettings.InterfaceFolderNames);
+            _selectableDependencies.AddRange(_entryScriptSettings.ClassFolderNames);
             
             base.Initialize();
             
             {
                 var property = _so.FindProperty("references");
-                _referenceReorderableList = new ReorderableList(_so, property, true, false, true, true)
+                _referenceReorderableList = new ReorderableList(_so, property)
                 {
+                    drawHeaderCallback = (rect) =>
+                    {
+                        EditorGUI.LabelField(rect, "Assembly Definition References");
+                    },
                     drawElementCallback = (rect, index, isActive, isFocused) => 
                     {
                         var assemblyDefinitionFile = property.GetArrayElementAtIndex(index);
@@ -78,6 +91,24 @@ namespace EntryScriptGenerator.Editor
                     }
                 };
             }
+
+            {
+                _dependenciesReorderableList = new ReorderableList(selectedDependencies, typeof(string))
+                {
+                    drawHeaderCallback = (rect) =>
+                    {
+                        EditorGUI.LabelField(rect, "Layer Dependencies");
+                    },
+                    drawElementCallback = (rect, index, isActive, isFocused) =>
+                    {
+                        var selectedIndex = EditorGUI.Popup(rect, _selectableDependencies.IndexOf(selectedDependencies[index]), _selectableDependencies.ToArray());
+                        if (0 <= selectedIndex && selectedIndex < _selectableDependencies.Count)
+                        {
+                            selectedDependencies[index] = _selectableDependencies[selectedIndex];
+                        }
+                    }
+                };
+            }
         }
 
         public override void OnGUI()
@@ -92,7 +123,9 @@ namespace EntryScriptGenerator.Editor
             EditorGUILayout.PropertyField(_so.FindProperty("autoReferenced"), true);
             EditorGUILayout.PropertyField(_so.FindProperty("noEngineReferences"), true);
             EditorGUILayout.PropertyField(_so.FindProperty("rootNamespace"), true);
+            EditorGUILayout.Space(10);
             _referenceReorderableList.DoLayoutList();
+            _dependenciesReorderableList.DoLayoutList();
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndVertical();
             _so.ApplyModifiedProperties();
@@ -113,17 +146,41 @@ namespace EntryScriptGenerator.Editor
             asmdefJson.noEngineReferences = _so.FindProperty("noEngineReferences").boolValue;
             asmdefJson.rootNamespace = _so.FindProperty("rootNamespace").stringValue;
             {
-                var references = _referenceReorderableList.serializedProperty;
-                for (var i=0; i<references.arraySize; i++)
+                var guids = new List<string>();
                 {
-                    var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(references.GetArrayElementAtIndex(i).objectReferenceValue as UnityEngine.Object));
+                    var property = _referenceReorderableList.serializedProperty;
+                    for (var i=0; i<property.arraySize; i++)
+                    {
+                        guids.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(property.GetArrayElementAtIndex(i).objectReferenceValue)));
+                    }
+                }
+                {
+                    foreach (var selectedDependency in selectedDependencies)
+                    {
+                        var dependencyAsmdefFilePath = targetPath;
+                        dependencyAsmdefFilePath = dependencyAsmdefFilePath.Remove(dependencyAsmdefFilePath.Length - UnitName.Length, UnitName.Length);
+                        dependencyAsmdefFilePath += selectedDependency + "/";
+                        dependencyAsmdefFilePath += _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." + selectedDependency : selectedDependency;
+                        dependencyAsmdefFilePath += ".asmdef";
+                        if (File.Exists(dependencyAsmdefFilePath))
+                        {
+                            var guid = AssetDatabase.AssetPathToGUID(dependencyAsmdefFilePath);
+                            if (!guids.Exists(t => t == guid))
+                            {
+                                guids.Add(guid);
+                            }
+                        }
+                    }
+                }
+
+                foreach (var guid in guids)
+                {
                     asmdefJson.references.Add("GUID:" + guid);
                 }
             }
             var json = JsonUtility.ToJson(asmdefJson);
-
             var path = targetPath + "/" + fileName + ".asmdef";
-            StreamWriter writer = new StreamWriter(path, true);
+            var writer = new StreamWriter(path, false);
             writer.Write(json);
             writer.Close();
         }
