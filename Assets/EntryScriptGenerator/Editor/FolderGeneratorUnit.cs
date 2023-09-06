@@ -32,14 +32,14 @@ namespace EntryScriptGenerator.Editor
         [SerializeField] private bool autoReferenced;
         [SerializeField] private bool noEngineReferences;
         [SerializeField] private string rootNamespace;
-        [SerializeField] private List<AssemblyDefinitionAsset> references;
-        [SerializeField] private List<string> selectedDependencies;
+        [SerializeField] private List<AssemblyDefinitionAsset> references = new();
+        [SerializeField] private List<string> referenceGuids = new();
+        [SerializeField] private List<string> selectedDependencies = new();
 
         private string _unitName;
         public string UnitName => _unitName;
         private EntryScriptSettings _entryScriptSettings;
         private FolderGenerator _folderGenerator;
-
         private ReorderableList _referenceReorderableList;
         private ReorderableList _dependenciesReorderableList;
 
@@ -64,30 +64,70 @@ namespace EntryScriptGenerator.Editor
             _selectableDependencies.AddRange(_entryScriptSettings.ClassFolderNames);
             
             base.Initialize();
-            
+
             {
-                var property = _so.FindProperty("references");
-                _referenceReorderableList = new ReorderableList(_so, property)
+                _so.Update();
+                var referenceProperty = _so.FindProperty("references");
+                var referenceGuidsProperty = _so.FindProperty("referenceGuids");
+                
+                if(referenceProperty.arraySize != referenceGuidsProperty.arraySize)
+                {
+                    referenceGuids.Clear();
+                    for (var i=0; i<referenceProperty.arraySize; i++)
+                    {
+                        referenceGuids.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(referenceProperty.GetArrayElementAtIndex(i).objectReferenceValue)));
+                    }
+                    _so.Update();
+                }
+                else
+                {
+                    for (var i = 0; i < referenceGuidsProperty.arraySize; i++)
+                    {
+                        references[i] = AssetDatabase.LoadAssetAtPath<AssemblyDefinitionAsset>(AssetDatabase.GUIDToAssetPath(referenceGuidsProperty.GetArrayElementAtIndex(i).stringValue));
+                    }
+                    _so.Update();
+                }
+                
+                _referenceReorderableList = new ReorderableList(_so, referenceProperty)
                 {
                     drawHeaderCallback = (rect) =>
                     {
                         EditorGUI.LabelField(rect, "Assembly Definition References");
                     },
-                    drawElementCallback = (rect, index, isActive, isFocused) => 
+                    drawElementCallback = (rect, index, isActive, isFocused) =>
                     {
-                        var assemblyDefinitionFile = property.GetArrayElementAtIndex(index);
+                        var assemblyDefinitionAsset = referenceProperty.GetArrayElementAtIndex(index);
+                        if (index >= referenceGuidsProperty.arraySize)
+                        {
+                            return;
+                        }
+                        var assemblyDefinitionFileGuid = referenceGuidsProperty.GetArrayElementAtIndex(index);
+                        assemblyDefinitionAsset.objectReferenceValue = AssetDatabase.LoadAssetAtPath<AssemblyDefinitionAsset>(AssetDatabase.GUIDToAssetPath(assemblyDefinitionFileGuid.stringValue));
                         rect.height = EditorGUIUtility.singleLineHeight;
                         var label = "(Missing Reference)";
-                        if (assemblyDefinitionFile.objectReferenceValue != null)
+                        if (assemblyDefinitionAsset.objectReferenceValue != null)
                         {
-                            var nameSo = new SerializedObject(assemblyDefinitionFile.objectReferenceValue);
+                            var nameSo = new SerializedObject(assemblyDefinitionAsset.objectReferenceValue);
                             var nameProperty = nameSo.targetObject.name;
                             if (!string.IsNullOrEmpty(nameProperty))
                             {
                                 label = nameProperty;
                             }
                         }
-                        EditorGUI.PropertyField(rect, assemblyDefinitionFile, new GUIContent(label));
+                        EditorGUI.PropertyField(rect, assemblyDefinitionAsset, new GUIContent(label));
+                        assemblyDefinitionFileGuid.stringValue = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(assemblyDefinitionAsset.objectReferenceValue));
+                    },
+                    onChangedCallback = (list) =>
+                    {
+                        var property = list.serializedProperty;
+                        references.Clear();
+                        referenceGuids.Clear();
+                        for (var i=0; i<property.arraySize; i++)
+                        {
+                            references.Add(property.GetArrayElementAtIndex(i).objectReferenceValue as AssemblyDefinitionAsset);
+                            referenceGuids.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(property.GetArrayElementAtIndex(i).objectReferenceValue)));
+                        }
+                        _so.Update();
                     }
                 };
             }
@@ -185,7 +225,7 @@ namespace EntryScriptGenerator.Editor
                     asmdefJson.references.Add("GUID:" + guid);
                 }
             }
-            var json = JsonUtility.ToJson(asmdefJson);
+            var json = JsonUtility.ToJson(asmdefJson, true);
             var path = targetPath + "/" + fileName + ".asmdef";
             var writer = new StreamWriter(path, false);
             writer.Write(json);

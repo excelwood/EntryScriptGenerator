@@ -28,7 +28,7 @@ namespace EntryScriptGenerator.Editor
             }
             
             using var sw = new StreamWriter(SettingJsonPath, false);
-            var json = JsonUtility.ToJson(this, false);
+            var json = JsonUtility.ToJson(this, true);
             sw.Write(json);
             sw.Flush();
         }
