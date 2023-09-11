@@ -157,6 +157,10 @@ namespace EntryScriptGenerator.Editor
                                 continue;
                             }
                             interfaceActivatesProperty.GetArrayElementAtIndex(index).boolValue = activates.GetArrayElementAtIndex(i).boolValue;
+                            if (interfaceInheritanceIndexes[index] >= 0)
+                            {
+                                interfaceActivatesProperty.GetArrayElementAtIndex(interfaceInheritanceIndexes[index]).boolValue = activates.GetArrayElementAtIndex(i).boolValue;
+                            }
                         }
                     }
                 }
