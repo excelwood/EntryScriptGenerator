@@ -22,7 +22,12 @@ namespace EntryScriptGenerator.Editor
             window.Show();
         }
 
-        private void OnDestroy()
+        private void OnEnable()
+        {
+            CheckAndInitialize();
+        }
+
+        private void OnDisable()
         {
             Dispose();
         }
