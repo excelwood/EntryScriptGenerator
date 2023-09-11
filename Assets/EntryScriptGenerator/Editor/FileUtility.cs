@@ -6,6 +6,11 @@ namespace EntryScriptGenerator.Editor
     {
         public static void CreateDirectory(string path)
         {
+            if (Directory.Exists(path))
+            {
+                return;
+            }
+            
             Directory.CreateDirectory(path);
             var dirInfo = new DirectoryInfo(path);
             while (!dirInfo.Exists)

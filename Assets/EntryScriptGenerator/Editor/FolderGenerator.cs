@@ -34,7 +34,7 @@ namespace EntryScriptGenerator.Editor
 
                 {
                     var excludes = new List<string>();
-                    var property = _so.FindProperty("generateFolderNameExcludes");
+                    var property = So.FindProperty("generateFolderNameExcludes");
                     for (var i=0; i<property.arraySize; i++)
                     {
                         excludes.Add(property.GetArrayElementAtIndex(i).stringValue);
@@ -54,7 +54,7 @@ namespace EntryScriptGenerator.Editor
                     }
                 }
                 {
-                    var property = _so.FindProperty("generateFolderName");
+                    var property = So.FindProperty("generateFolderName");
                     if (path.Length > 0)
                     {
                         path += ".";
@@ -74,8 +74,6 @@ namespace EntryScriptGenerator.Editor
 
             _entryScriptGenerator = entryScriptGenerator;
             _entryScriptSettings = entryScriptSettings;
-            ResetFolderUnits();
-
             _entryScriptSettings.OnChangeFolderCountEvent += ResetFolderUnits;
         }
 
@@ -114,7 +112,13 @@ namespace EntryScriptGenerator.Editor
 
         public override void OnGUI()
         {
-            _so.Update();
+            if (_entryScriptSettings.InterfaceFolderNames.Count != _interfaceFolderGeneratorUnits.Count ||
+                _entryScriptSettings.ClassFolderNames.Count != _classFolderGeneratorUnits.Count)
+            {
+                ResetFolderUnits();
+            }
+            
+            So.Update();
             
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
             {
@@ -123,20 +127,20 @@ namespace EntryScriptGenerator.Editor
                 {
                     {
                         var rect = EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
-                        EditorGUILayout.PropertyField(_so.FindProperty("generateTargetPath"), true);
+                        EditorGUILayout.PropertyField(So.FindProperty("generateTargetPath"), true);
                         EditorGUILayout.EndVertical();
-                        EditorWindowUtility.DragAndDropFilePaths(_so, rect, "generateTargetPath", false);
+                        EditorWindowUtility.DragAndDropFilePaths(So, rect, "generateTargetPath", false);
                     }
 
                     {
                         EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
-                        EditorGUILayout.PropertyField(_so.FindProperty("generateFolderName"), true);
+                        EditorGUILayout.PropertyField(So.FindProperty("generateFolderName"), true);
                         EditorGUILayout.EndVertical();
                     }
                     
                     {
                         EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
-                        EditorGUILayout.PropertyField(_so.FindProperty("generateFolderNameExcludes"), true);
+                        EditorGUILayout.PropertyField(So.FindProperty("generateFolderNameExcludes"), true);
                         EditorGUILayout.EndVertical();
                     }
                 }
@@ -165,7 +169,7 @@ namespace EntryScriptGenerator.Editor
                 EditorGUILayout.EndVertical();
             }
             
-            _so.ApplyModifiedProperties();
+            So.ApplyModifiedProperties();
             
             EditorGUILayout.EndScrollView();
 
@@ -178,11 +182,6 @@ namespace EntryScriptGenerator.Editor
         private void Execute()
         {
             var targetPathRoot = GenerateFolderRoot;
-            
-            if (Directory.Exists(targetPathRoot))
-            {
-                FileUtility.DeleteDirectory(targetPathRoot, true);
-            }
 
             // フォルダー作成とAsmdefの書き出しを行う
             {

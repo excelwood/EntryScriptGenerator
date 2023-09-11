@@ -15,30 +15,56 @@ namespace EntryScriptGenerator.Editor
         private EntryScriptSettings _entryScriptSettings;
         private ScriptGenerator _scriptGenerator;
         private FolderGenerator _folderGenerator;
-        
+
         [MenuItem("Tools/EntryScriptGenerator")]
         private static void OpenWindow() {
             var window = GetWindow(typeof(EntryScriptGenerator), false, "EntryScriptGenerator");
             window.Show();
         }
-        
-        private void OnEnable()
+
+        private void OnDestroy()
         {
-            _entryScriptSettings = EntryScriptSettings.CreateInstance(this);
-            _scriptGenerator = ScriptGenerator.CreateInstance(this, _entryScriptSettings);
-            _folderGenerator = FolderGenerator.CreateInstance(this, _entryScriptSettings);
+            Dispose();
         }
 
-        private void OnDisable()
+        private void Dispose()
         {
-            _entryScriptSettings.Dispose();
-            _scriptGenerator.Dispose();
-            _folderGenerator.Dispose();
+            if (_entryScriptSettings != null) 
+            {
+                _entryScriptSettings.Dispose();
+            }
+
+            if (_scriptGenerator != null)
+            {
+                _scriptGenerator.Dispose();
+            }
+
+            if (_folderGenerator != null)
+            {
+                _folderGenerator.Dispose();
+            }
         }
 
+        private void CheckAndInitialize()
+        {
+            if (_entryScriptSettings == null)
+            {
+                _entryScriptSettings = EntryScriptSettings.CreateInstance(this);
+            }
+            if (_scriptGenerator == null)
+            {
+                _scriptGenerator = ScriptGenerator.CreateInstance(this, _entryScriptSettings);
+            }
+            if (_folderGenerator == null)
+            {
+                _folderGenerator = FolderGenerator.CreateInstance(this, _entryScriptSettings);
+            }
+        }
         
         private void OnGUI()
         {
+            CheckAndInitialize();
+            
             _entryScriptSettings.OnGUI();
             
             switch (_entryScriptSettings.SelectedTab)

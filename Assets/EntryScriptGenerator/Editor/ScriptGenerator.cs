@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace EntryScriptGenerator.Editor
 {
-    public class ScriptGenerator : ScriptableObject, IDisposable
+    public class ScriptGenerator : GeneratorUnit
     {
         [SerializeField] private string prefix = "";
         [SerializeField] private string interfaceRootPath = "";
@@ -24,28 +24,15 @@ namespace EntryScriptGenerator.Editor
 
         private EntryScriptGenerator _entryScriptGenerator;
         private EntryScriptSettings _entryScriptSettings;
-        private SerializedObject _so;
         private Vector2 _scrollPosition = Vector2.zero;
         
-        private const string SettingJsonPath = "Assets/EntryScriptGenerator/Editor/SaveData/ScriptGeneratorSettings.json";
+        protected override string SettingJsonPath => "Assets/EntryScriptGenerator/Editor/SaveData/ScriptGeneratorSettings.json";
 
         private void Initialize(EntryScriptGenerator entryScriptGenerator, EntryScriptSettings entryScriptSettings)
         {
             _entryScriptGenerator = entryScriptGenerator;
             _entryScriptSettings = entryScriptSettings;
-            _so = new SerializedObject(this);
-
-            if (!File.Exists(SettingJsonPath)) return;
-            using var sr = new StreamReader(SettingJsonPath);
-            JsonUtility.FromJsonOverwrite(sr.ReadToEnd(), this);
-        }
-
-        public void Dispose()
-        {
-            using var sw = new StreamWriter(SettingJsonPath, false);
-            var json = JsonUtility.ToJson(this, false);
-            sw.Write(json);
-            sw.Flush();
+            base.Initialize();
         }
 
         public static ScriptGenerator CreateInstance(EntryScriptGenerator entryScriptGenerator, EntryScriptSettings entryScriptSettings)
@@ -55,11 +42,11 @@ namespace EntryScriptGenerator.Editor
             return instance;
         }
         
-        public void OnGUI()
+        public override void OnGUI()
         {
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
             
-            _so.Update();
+            So.Update();
             
             // Prefix
             GUILayout.Label("スクリプト出力設定", EditorStyles.boldLabel);
@@ -68,28 +55,28 @@ namespace EntryScriptGenerator.Editor
                 GUILayout.Label("ソースコード名", EditorStyles.boldLabel);
                 {
                     EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
-                    EditorGUILayout.PropertyField(_so.FindProperty("prefix"), true);
+                    EditorGUILayout.PropertyField(So.FindProperty("prefix"), true);
                     EditorGUILayout.EndVertical();
                 }
                 
                 {
                     var rect = EditorGUILayout.BeginVertical();
-                    EditorGUILayout.PropertyField(_so.FindProperty("interfaceRootPath"), true);
+                    EditorGUILayout.PropertyField(So.FindProperty("interfaceRootPath"), true);
                     EditorGUILayout.EndVertical();
-                    EditorWindowUtility.DragAndDropFilePaths(_so, rect, "interfaceRootPath", false);
+                    EditorWindowUtility.DragAndDropFilePaths(So, rect, "interfaceRootPath", false);
                 }
                 {
                     var rect = EditorGUILayout.BeginVertical();
-                    EditorGUILayout.PropertyField(_so.FindProperty("classRootPath"), true);
+                    EditorGUILayout.PropertyField(So.FindProperty("classRootPath"), true);
                     EditorGUILayout.EndVertical();
-                    EditorWindowUtility.DragAndDropFilePaths(_so, rect, "classRootPath", false);
+                    EditorWindowUtility.DragAndDropFilePaths(So, rect, "classRootPath", false);
                 }
                 
                 // interface activates
                 GUILayout.Label("Interface 出力の有効/無効", EditorStyles.boldLabel);
-                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject,"interfaceFolderNames", _so, "interfaceActivates", true);
+                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject,"interfaceFolderNames", So, "interfaceActivates", true);
                 {
-                    var activates = _so.FindProperty("interfaceActivates");
+                    var activates = So.FindProperty("interfaceActivates");
                     var paths = _entryScriptSettings.SerializedObject.FindProperty("interfaceFolderNames");
                     var allChecked = true;
                     for (var i = 0; i < paths.arraySize; i++)
@@ -124,9 +111,9 @@ namespace EntryScriptGenerator.Editor
             
                 // class activates
                 GUILayout.Label("Class 出力の有効/無効", EditorStyles.boldLabel);
-                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "classFolderNames", _so, "classActivates", true);
+                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "classFolderNames", So, "classActivates", true);
                 {
-                    var activates = _so.FindProperty("classActivates");
+                    var activates = So.FindProperty("classActivates");
                     var paths = _entryScriptSettings.SerializedObject.FindProperty("classFolderNames");
                     var allChecked = true;
                     for (int i = 0; i < paths.arraySize; i++)
@@ -161,7 +148,7 @@ namespace EntryScriptGenerator.Editor
                     isAutoSelectInterface = GUILayout.Toggle(isAutoSelectInterface, "Interface自動選択");
                     if (isAutoSelectInterface)
                     {
-                        var interfaceActivatesProperty = _so.FindProperty("interfaceActivates");
+                        var interfaceActivatesProperty = So.FindProperty("interfaceActivates");
                         for (int i = 0; i < activates.arraySize; i++)
                         {
                             var index = classInterfaceIndexes[i];
@@ -184,13 +171,13 @@ namespace EntryScriptGenerator.Editor
                 EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
                 
                 // interface suffixes
-                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "interfaceFolderNames", _so, "interfaceSuffixNames", "");
-                EditorGUILayout.PropertyField(_so.FindProperty("interfaceSuffixNames"), true);
+                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "interfaceFolderNames", So, "interfaceSuffixNames", "");
+                EditorGUILayout.PropertyField(So.FindProperty("interfaceSuffixNames"), true);
                 GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
                 
                 // Interface Inheritance Indexes
-                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "interfaceFolderNames", _so, "interfaceInheritanceIndexes", -1);
-                EditorGUILayout.PropertyField(_so.FindProperty("interfaceInheritanceIndexes"), true);
+                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "interfaceFolderNames", So, "interfaceInheritanceIndexes", -1);
+                EditorGUILayout.PropertyField(So.FindProperty("interfaceInheritanceIndexes"), true);
                 GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
                 
                 // class interface references
@@ -224,13 +211,13 @@ namespace EntryScriptGenerator.Editor
                 EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
                 
                 // class suffixes
-                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "classFolderNames", _so, "classSuffixNames", "");
-                EditorGUILayout.PropertyField(_so.FindProperty("classSuffixNames"), true);
+                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "classFolderNames", So, "classSuffixNames", "");
+                EditorGUILayout.PropertyField(So.FindProperty("classSuffixNames"), true);
                 GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
                 
                 // class interfaces
-                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "classFolderNames", _so, "classInterfaceIndexes", -1);
-                EditorGUILayout.PropertyField(_so.FindProperty("classInterfaceIndexes"), true);
+                EditorWindowUtility.SyncArraySize(_entryScriptSettings.SerializedObject, "classFolderNames", So, "classInterfaceIndexes", -1);
+                EditorGUILayout.PropertyField(So.FindProperty("classInterfaceIndexes"), true);
                 GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
                 
                 // class interface references
@@ -258,7 +245,7 @@ namespace EntryScriptGenerator.Editor
             }
             GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(5));
             
-            _so.ApplyModifiedProperties();
+            So.ApplyModifiedProperties();
             
             EditorGUILayout.EndScrollView();
 

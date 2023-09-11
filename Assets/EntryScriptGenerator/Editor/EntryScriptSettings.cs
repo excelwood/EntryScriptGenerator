@@ -16,7 +16,7 @@ namespace EntryScriptGenerator.Editor
         public IReadOnlyList<string> InterfaceFolderNames => interfaceFolderNames;
         public IReadOnlyList<string> ClassFolderNames => classFolderNames;
         
-        public SerializedObject SerializedObject => _so;
+        public SerializedObject SerializedObject => So;
         
         public delegate void OnChangeFolderCount();
         public OnChangeFolderCount OnChangeFolderCountEvent;
@@ -64,7 +64,7 @@ namespace EntryScriptGenerator.Editor
 
         public override void OnGUI()
         {
-            _so.Update();
+            So.Update();
             
             // Common
             EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
@@ -72,29 +72,29 @@ namespace EntryScriptGenerator.Editor
             GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
             {
                 var rect = EditorGUILayout.BeginVertical();
-                var property = _so.FindProperty("interfaceFolderNames");
+                var property = So.FindProperty("interfaceFolderNames");
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(property, true);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    _so.ApplyModifiedProperties();
+                    So.ApplyModifiedProperties();
                     OnFoldersListChanged();
                 }
                 EditorGUILayout.EndVertical();
-                EditorWindowUtility.DragAndDropFilePaths(_so, rect, "interfaceFolderNames", true);
+                EditorWindowUtility.DragAndDropFilePaths(So, rect, "interfaceFolderNames", true);
             }
             GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
             {
                 var rect = EditorGUILayout.BeginVertical();
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(_so.FindProperty("classFolderNames"), true);
+                EditorGUILayout.PropertyField(So.FindProperty("classFolderNames"), true);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    _so.ApplyModifiedProperties();
+                    So.ApplyModifiedProperties();
                     OnFoldersListChanged();
                 }
                 EditorGUILayout.EndVertical();
-                EditorWindowUtility.DragAndDropFilePaths(_so, rect, "classFolderNames", true);
+                EditorWindowUtility.DragAndDropFilePaths(So, rect, "classFolderNames", true);
             }
             GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
             
@@ -112,7 +112,7 @@ namespace EntryScriptGenerator.Editor
             
             EditorGUILayout.EndVertical();
             
-            _so.ApplyModifiedProperties();
+            So.ApplyModifiedProperties();
         }
     }
 }

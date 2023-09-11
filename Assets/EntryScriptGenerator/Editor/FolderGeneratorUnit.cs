@@ -66,9 +66,9 @@ namespace EntryScriptGenerator.Editor
             base.Initialize();
 
             {
-                _so.Update();
-                var referenceProperty = _so.FindProperty("references");
-                var referenceGuidsProperty = _so.FindProperty("referenceGuids");
+                So.Update();
+                var referenceProperty = So.FindProperty("references");
+                var referenceGuidsProperty = So.FindProperty("referenceGuids");
                 
                 if(referenceProperty.arraySize != referenceGuidsProperty.arraySize)
                 {
@@ -77,7 +77,7 @@ namespace EntryScriptGenerator.Editor
                     {
                         referenceGuids.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(referenceProperty.GetArrayElementAtIndex(i).objectReferenceValue)));
                     }
-                    _so.Update();
+                    So.Update();
                 }
                 else
                 {
@@ -85,10 +85,10 @@ namespace EntryScriptGenerator.Editor
                     {
                         references[i] = AssetDatabase.LoadAssetAtPath<AssemblyDefinitionAsset>(AssetDatabase.GUIDToAssetPath(referenceGuidsProperty.GetArrayElementAtIndex(i).stringValue));
                     }
-                    _so.Update();
+                    So.Update();
                 }
                 
-                _referenceReorderableList = new ReorderableList(_so, referenceProperty)
+                _referenceReorderableList = new ReorderableList(So, referenceProperty)
                 {
                     drawHeaderCallback = (rect) =>
                     {
@@ -127,7 +127,7 @@ namespace EntryScriptGenerator.Editor
                             references.Add(property.GetArrayElementAtIndex(i).objectReferenceValue as AssemblyDefinitionAsset);
                             referenceGuids.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(property.GetArrayElementAtIndex(i).objectReferenceValue)));
                         }
-                        _so.Update();
+                        So.Update();
                     }
                 };
             }
@@ -153,27 +153,27 @@ namespace EntryScriptGenerator.Editor
 
         public override void OnGUI()
         {
-            _so.Update();
+            So.Update();
             
             GUILayout.Label(_unitName, EditorStyles.boldLabel);
             EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
-            EditorGUILayout.PropertyField(_so.FindProperty("generateTarget"), true);
+            EditorGUILayout.PropertyField(So.FindProperty("generateTarget"), true);
             EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
-            EditorGUILayout.PropertyField(_so.FindProperty("allowUnsafeCode"), true);
-            EditorGUILayout.PropertyField(_so.FindProperty("autoReferenced"), true);
-            EditorGUILayout.PropertyField(_so.FindProperty("noEngineReferences"), true);
-            EditorGUILayout.PropertyField(_so.FindProperty("rootNamespace"), true);
+            EditorGUILayout.PropertyField(So.FindProperty("allowUnsafeCode"), true);
+            EditorGUILayout.PropertyField(So.FindProperty("autoReferenced"), true);
+            EditorGUILayout.PropertyField(So.FindProperty("noEngineReferences"), true);
+            EditorGUILayout.PropertyField(So.FindProperty("rootNamespace"), true);
             EditorGUILayout.Space(10);
             _referenceReorderableList.DoLayoutList();
             _dependenciesReorderableList.DoLayoutList();
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndVertical();
-            _so.ApplyModifiedProperties();
+            So.ApplyModifiedProperties();
         }
 
         public void PublishAssemblyDefinition(string targetPath)
         {
-            if (!_so.FindProperty("generateTarget").boolValue)
+            if (!So.FindProperty("generateTarget").boolValue)
             {
                 return;
             }
@@ -182,10 +182,10 @@ namespace EntryScriptGenerator.Editor
             var fileName = _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." : "";
             fileName += _entryScriptSettings.InterfaceFolderNames.Exists(t => t == UnitName) ? "Interfaces." + UnitName : UnitName;
             asmdefJson.name = fileName;
-            asmdefJson.allowUnsafeCode = _so.FindProperty("allowUnsafeCode").boolValue;
-            asmdefJson.autoReferenced = _so.FindProperty("autoReferenced").boolValue;
-            asmdefJson.noEngineReferences = _so.FindProperty("noEngineReferences").boolValue;
-            asmdefJson.rootNamespace = _so.FindProperty("rootNamespace").stringValue;
+            asmdefJson.allowUnsafeCode = So.FindProperty("allowUnsafeCode").boolValue;
+            asmdefJson.autoReferenced = So.FindProperty("autoReferenced").boolValue;
+            asmdefJson.noEngineReferences = So.FindProperty("noEngineReferences").boolValue;
+            asmdefJson.rootNamespace = So.FindProperty("rootNamespace").stringValue;
             {
                 var guids = new List<string>();
                 {

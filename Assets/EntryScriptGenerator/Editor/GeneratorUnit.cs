@@ -8,13 +8,23 @@ namespace EntryScriptGenerator.Editor
 {
     public abstract class GeneratorUnit : ScriptableObject, IDisposable
     {
-        protected SerializedObject _so;
+        protected SerializedObject So
+        {
+            get
+            {
+                if (_so == null)
+                {
+                    _so = new SerializedObject(this);
+                }
+                return _so;
+            }   
+        }
+        private SerializedObject _so;
+        
         protected abstract string SettingJsonPath { get; }
 
         protected void Initialize()
         {
-            _so = new SerializedObject(this);
-
             if (!File.Exists(SettingJsonPath)) return;
             using var sr = new StreamReader(SettingJsonPath);
             JsonUtility.FromJsonOverwrite(sr.ReadToEnd(), this);
