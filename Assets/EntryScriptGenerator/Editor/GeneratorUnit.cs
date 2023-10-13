@@ -32,9 +32,9 @@ namespace EntryScriptGenerator.Editor
         
         public virtual void Dispose()
         {
-            if (!Directory.Exists(Constants.SaveDataFolderName))
+            if (!Directory.Exists(Constants.SaveDataFolderPath))
             {
-                FileUtility.CreateDirectory(Constants.SaveDataFolderName);
+                FileUtility.CreateDirectory(Constants.SaveDataFolderPath);
             }
             
             using var sw = new StreamWriter(SettingJsonPath, false);

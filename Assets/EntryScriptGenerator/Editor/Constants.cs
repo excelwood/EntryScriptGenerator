@@ -2,6 +2,6 @@
 {
     public static class Constants
     {
-        public static string SaveDataFolderName = "SaveData";
+        public static readonly string SaveDataFolderPath = "Assets/EntryScriptGenerator/Editor/SaveData";
     }
 }
