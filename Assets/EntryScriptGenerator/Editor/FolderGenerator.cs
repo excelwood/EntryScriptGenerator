@@ -193,7 +193,7 @@ namespace EntryScriptGenerator.Editor
                     {
                         var path = targetPathRoot + "/Interfaces/" + interfaceUnit.UnitName;
                         FileUtility.CreateDirectory(path);
-                        interfaceUnit.PublishAssemblyDefinition(path);
+                        interfaceUnit.PublishAssemblyDefinition(path, FolderType.Interface);
                     }
                 }
             
@@ -201,7 +201,7 @@ namespace EntryScriptGenerator.Editor
                 {
                     var path = targetPathRoot + "/" + classUnit.UnitName;
                     FileUtility.CreateDirectory(path);
-                    classUnit.PublishAssemblyDefinition(path);
+                    classUnit.PublishAssemblyDefinition(path, FolderType.Class);
                 }
             }
 
@@ -210,13 +210,13 @@ namespace EntryScriptGenerator.Editor
                 foreach (var interfaceUnit in _interfaceFolderGeneratorUnits)
                 {
                     var path = targetPathRoot + "/Interfaces/" + interfaceUnit.UnitName;
-                    interfaceUnit.PublishAssemblyDefinition(path);
+                    interfaceUnit.PublishAssemblyDefinition(path, FolderType.Interface);
                 }
             
                 foreach (var classUnit in _classFolderGeneratorUnits)
                 {
                     var path = targetPathRoot + "/" + classUnit.UnitName;
-                    classUnit.PublishAssemblyDefinition(path);
+                    classUnit.PublishAssemblyDefinition(path, FolderType.Class);
                 }
             }
             

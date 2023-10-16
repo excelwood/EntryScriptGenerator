@@ -34,16 +34,19 @@ namespace EntryScriptGenerator.Editor
         [SerializeField] private string rootNamespace;
         [SerializeField] private List<AssemblyDefinitionAsset> references = new();
         [SerializeField] private List<string> referenceGuids = new();
-        [SerializeField] private List<string> selectedDependencies = new();
+        [SerializeField] private List<string> selectedInterfaceDependencies = new();
+        [SerializeField] private List<string> selectedClassDependencies = new();
 
         private string _unitName;
         public string UnitName => _unitName;
         private EntryScriptSettings _entryScriptSettings;
         private FolderGenerator _folderGenerator;
         private ReorderableList _referenceReorderableList;
-        private ReorderableList _dependenciesReorderableList;
+        private ReorderableList _interfaceDependenciesReorderableList;
+        private ReorderableList _classDependenciesReorderableList;
 
-        private readonly List<string> _selectableDependencies = new();
+        private readonly List<string> _selectableInterfaceDependencies = new();
+        private readonly List<string> _selectableClassDependencies = new();
         
         protected override string SettingJsonPath => Constants.SaveDataFolderPath + "/FolderGenerateUnit" + _unitName + "Settings.json";
         
@@ -60,8 +63,8 @@ namespace EntryScriptGenerator.Editor
             _folderGenerator = folderGenerator;
             _unitName = unitName;
             
-            _selectableDependencies.AddRange(_entryScriptSettings.InterfaceFolderNames);
-            _selectableDependencies.AddRange(_entryScriptSettings.ClassFolderNames);
+            _selectableInterfaceDependencies.AddRange(_entryScriptSettings.InterfaceFolderNames);
+            _selectableClassDependencies.AddRange(_entryScriptSettings.ClassFolderNames);
             
             base.Initialize();
 
@@ -131,20 +134,38 @@ namespace EntryScriptGenerator.Editor
                     }
                 };
             }
-
+            
             {
-                _dependenciesReorderableList = new ReorderableList(selectedDependencies, typeof(string))
+                _interfaceDependenciesReorderableList = new ReorderableList(selectedInterfaceDependencies, typeof(string))
                 {
                     drawHeaderCallback = (rect) =>
                     {
-                        EditorGUI.LabelField(rect, "Layer Dependencies");
+                        EditorGUI.LabelField(rect, "Interface Dependencies");
                     },
                     drawElementCallback = (rect, index, isActive, isFocused) =>
                     {
-                        var selectedIndex = EditorGUI.Popup(rect, _selectableDependencies.IndexOf(selectedDependencies[index]), _selectableDependencies.ToArray());
-                        if (0 <= selectedIndex && selectedIndex < _selectableDependencies.Count)
+                        var selectedIndex = EditorGUI.Popup(rect, _selectableInterfaceDependencies.IndexOf(selectedInterfaceDependencies[index]), _selectableInterfaceDependencies.ToArray());
+                        if (0 <= selectedIndex && selectedIndex < _selectableInterfaceDependencies.Count)
                         {
-                            selectedDependencies[index] = _selectableDependencies[selectedIndex];
+                            selectedInterfaceDependencies[index] = _selectableInterfaceDependencies[selectedIndex];
+                        }
+                    }
+                };
+            }
+
+            {
+                _classDependenciesReorderableList = new ReorderableList(selectedClassDependencies, typeof(string))
+                {
+                    drawHeaderCallback = (rect) =>
+                    {
+                        EditorGUI.LabelField(rect, "Class Dependencies");
+                    },
+                    drawElementCallback = (rect, index, isActive, isFocused) =>
+                    {
+                        var selectedIndex = EditorGUI.Popup(rect, _selectableClassDependencies.IndexOf(selectedClassDependencies[index]), _selectableClassDependencies.ToArray());
+                        if (0 <= selectedIndex && selectedIndex < _selectableClassDependencies.Count)
+                        {
+                            selectedClassDependencies[index] = _selectableClassDependencies[selectedIndex];
                         }
                     }
                 };
@@ -165,13 +186,14 @@ namespace EntryScriptGenerator.Editor
             EditorGUILayout.PropertyField(So.FindProperty("rootNamespace"), true);
             EditorGUILayout.Space(10);
             _referenceReorderableList.DoLayoutList();
-            _dependenciesReorderableList.DoLayoutList();
+            _interfaceDependenciesReorderableList.DoLayoutList();
+            _classDependenciesReorderableList.DoLayoutList();
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndVertical();
             So.ApplyModifiedProperties();
         }
 
-        public void PublishAssemblyDefinition(string targetPath)
+        public void PublishAssemblyDefinition(string targetPath, FolderType folderType)
         {
             if (!So.FindProperty("generateTarget").boolValue)
             {
@@ -180,7 +202,7 @@ namespace EntryScriptGenerator.Editor
             
             var asmdefJson = new AssemblyDefinitionJsonData();
             var fileName = _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." : "";
-            fileName += _entryScriptSettings.InterfaceFolderNames.Exists(t => t == UnitName) ? "Interfaces." + UnitName : UnitName;
+            fileName += folderType == FolderType.Interface ? "Interfaces." + UnitName : UnitName;
             asmdefJson.name = fileName;
             asmdefJson.allowUnsafeCode = So.FindProperty("allowUnsafeCode").boolValue;
             asmdefJson.autoReferenced = So.FindProperty("autoReferenced").boolValue;
@@ -196,16 +218,32 @@ namespace EntryScriptGenerator.Editor
                     }
                 }
                 {
-                    foreach (var selectedDependency in selectedDependencies)
+                    foreach (var selectedDependency in selectedInterfaceDependencies)
                     {
-                        var dependencyFileName = _entryScriptSettings.InterfaceFolderNames.Exists(t => t == selectedDependency) ? "Interfaces." + selectedDependency : selectedDependency;
+                        var dependencyFileName = "Interfaces." + selectedDependency;
                         
                         var dependencyAsmdefFilePath = _folderGenerator.GenerateFolderRoot.Length > 0 ? _folderGenerator.GenerateFolderRoot + "/" : _folderGenerator.GenerateFolderRoot;
-                        if (_entryScriptSettings.InterfaceFolderNames.Exists(t => t == selectedDependency))
-                        {
-                            dependencyAsmdefFilePath += "Interfaces/";
-                        }
+                        dependencyAsmdefFilePath += "Interfaces/";
                         
+                        dependencyAsmdefFilePath += selectedDependency + "/";
+                        dependencyAsmdefFilePath += _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." + dependencyFileName : dependencyFileName;
+                        dependencyAsmdefFilePath += ".asmdef";
+                        if (File.Exists(dependencyAsmdefFilePath))
+                        {
+                            var guid = AssetDatabase.AssetPathToGUID(dependencyAsmdefFilePath);
+                            if (!guids.Exists(t => t == guid))
+                            {
+                                guids.Add(guid);
+                            }
+                        }
+                    }
+                }
+                {
+                    foreach (var selectedDependency in selectedClassDependencies)
+                    {
+                        var dependencyFileName = selectedDependency;
+                        
+                        var dependencyAsmdefFilePath = _folderGenerator.GenerateFolderRoot.Length > 0 ? _folderGenerator.GenerateFolderRoot + "/" : _folderGenerator.GenerateFolderRoot;
                         dependencyAsmdefFilePath += selectedDependency + "/";
                         dependencyAsmdefFilePath += _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." + dependencyFileName : dependencyFileName;
                         dependencyAsmdefFilePath += ".asmdef";
