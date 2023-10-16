@@ -34,6 +34,11 @@ namespace EntryScriptGenerator.Editor
 
         private void Dispose()
         {
+            SaveSettings();
+        }
+
+        public void SaveSettings()
+        {
             if (_entryScriptSettings != null) 
             {
                 _entryScriptSettings.onImportSettingsEvent -= OnImportSettings;

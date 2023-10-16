@@ -10,6 +10,30 @@ using UnityEditor.UIElements;
 
 namespace EntryScriptGenerator.Editor
 {
+    public class MessageWindow : EditorWindow
+    {
+        private string _message;
+        
+        public void SetMessage(string message)
+        {
+            _message = message;
+        }
+
+        private void OnGUI()
+        {
+            GUILayout.Label(_message, EditorStyles.boldLabel);
+            if (GUILayout.Button("OK"))
+            {
+                Close();
+            }
+        }
+
+        private void OnLostFocus()
+        {
+            Close();
+        }
+    }
+    
     public class EntryScriptSettings : GeneratorUnit
     {
         [SerializeField] private List<string> interfaceFolderNames = new();
@@ -28,6 +52,9 @@ namespace EntryScriptGenerator.Editor
         public OnImportSettings onImportSettingsEvent;
 
         private EntryScriptGenerator _entryScriptGenerator;
+
+        private MessageWindow _messageWindow;
+        private Rect _saveButtonRect;
 
         public ToolTab SelectedTab => selectedTab;
         private static class Styles
@@ -131,6 +158,18 @@ namespace EntryScriptGenerator.Editor
             {
                 ImportSettings();
             }
+
+            if (GUILayout.Button("Save"))
+            {
+                var position = GUIUtility.GUIToScreenPoint(_saveButtonRect.center);
+                SaveSettings(position);
+            }
+
+            if (Event.current.type == EventType.Repaint)
+            {
+                _saveButtonRect = GUILayoutUtility.GetLastRect();
+            }
+
             EditorGUILayout.EndHorizontal();
             GUILayout.Space(10);
         }
@@ -152,6 +191,15 @@ namespace EntryScriptGenerator.Editor
             ZipFile.ExtractToDirectory(filePath, Constants.SaveDataFolderPath, true);
             base.Initialize();
             onImportSettingsEvent?.Invoke();
+        }
+
+        private void SaveSettings(Vector2 popupPosition)
+        {
+            _entryScriptGenerator.SaveSettings();
+            _messageWindow = CreateInstance<MessageWindow>();
+            _messageWindow.SetMessage("設定を保存しました");
+            _messageWindow.position = new Rect(popupPosition, new Vector2(200, 50));
+            _messageWindow.ShowPopup();
         }
 
         private void ToolMenuTab()
