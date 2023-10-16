@@ -45,7 +45,7 @@ namespace EntryScriptGenerator.Editor
 
         private readonly List<string> _selectableDependencies = new();
         
-        protected override string SettingJsonPath => "Assets/EntryScriptGenerator/Editor/SaveData/FolderGenerateUnit" + _unitName + "Settings.json";
+        protected override string SettingJsonPath => Constants.SaveDataFolderPath + "/FolderGenerateUnit" + _unitName + "Settings.json";
         
         public static FolderGeneratorUnit CreateInstance(EntryScriptSettings entryScriptSettings, FolderGenerator folderGenerator, string unitName)
         {

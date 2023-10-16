@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.UIElements;
@@ -19,7 +22,10 @@ namespace EntryScriptGenerator.Editor
         public SerializedObject SerializedObject => So;
         
         public delegate void OnChangeFolderCount();
-        public OnChangeFolderCount OnChangeFolderCountEvent;
+        public OnChangeFolderCount onChangeFolderCountEvent;
+
+        public delegate void OnImportSettings();
+        public OnImportSettings onImportSettingsEvent;
 
         private EntryScriptGenerator _entryScriptGenerator;
 
@@ -57,15 +63,14 @@ namespace EntryScriptGenerator.Editor
         
         public void OnFoldersListChanged()
         {
-            OnChangeFolderCountEvent?.Invoke();
+            onChangeFolderCountEvent?.Invoke();
         }
         
-        protected override string SettingJsonPath => "Assets/EntryScriptGenerator/Editor/SaveData/EntryScriptSettings.json";
+        protected override string SettingJsonPath => Constants.SaveDataFolderPath + "/EntryScriptSettings.json";
 
         public override void OnGUI()
         {
             So.Update();
-            
             
             EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
             FoldersSetting();
@@ -120,13 +125,33 @@ namespace EntryScriptGenerator.Editor
             GUILayout.Space(10);
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Export")) {
-                
+                ExportSettings();
             }
-            if (GUILayout.Button("Import")) {
-                
+            if (GUILayout.Button("Import"))
+            {
+                ImportSettings();
             }
             EditorGUILayout.EndHorizontal();
             GUILayout.Space(10);
+        }
+
+        private void ExportSettings()
+        {
+            // 保存先のファイルパスを取得する
+            var filePath = EditorUtility.SaveFilePanel("Export", "Assets", Constants.SettingFolderName, "zip");
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+            ZipFile.CreateFromDirectory(Constants.SaveDataFolderPath, filePath);
+        }
+
+        private void ImportSettings()
+        {
+            var filePath = EditorUtility.OpenFilePanel("Import", "Assets", "zip");
+            ZipFile.ExtractToDirectory(filePath, Constants.SaveDataFolderPath, true);
+            base.Initialize();
+            onImportSettingsEvent?.Invoke();
         }
 
         private void ToolMenuTab()

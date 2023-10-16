@@ -2,6 +2,7 @@
 {
     public static class Constants
     {
-        public static readonly string SaveDataFolderPath = "Assets/EntryScriptGenerator/Editor/SaveData";
+        public const string SettingFolderName = "SaveData";
+        public const string SaveDataFolderPath = "Assets/EntryScriptGenerator/Editor/" + SettingFolderName;
     }
 }

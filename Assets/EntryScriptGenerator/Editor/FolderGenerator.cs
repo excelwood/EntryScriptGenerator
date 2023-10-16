@@ -23,7 +23,7 @@ namespace EntryScriptGenerator.Editor
         private readonly List<FolderGeneratorUnit> _interfaceFolderGeneratorUnits = new();
         private readonly List<FolderGeneratorUnit> _classFolderGeneratorUnits = new();
 
-        protected override string SettingJsonPath => "Assets/EntryScriptGenerator/Editor/SaveData/FolderGeneratorSettings.json";
+        protected override string SettingJsonPath => Constants.SaveDataFolderPath + "/FolderGeneratorSettings.json";
 
         public string GenerateAsmdefPrefix
         {
@@ -74,7 +74,7 @@ namespace EntryScriptGenerator.Editor
 
             _entryScriptGenerator = entryScriptGenerator;
             _entryScriptSettings = entryScriptSettings;
-            _entryScriptSettings.OnChangeFolderCountEvent += ResetFolderUnits;
+            _entryScriptSettings.onChangeFolderCountEvent += ResetFolderUnits;
         }
 
         private void ResetFolderUnits()
@@ -100,7 +100,7 @@ namespace EntryScriptGenerator.Editor
             _interfaceFolderGeneratorUnits.ForEach(t => t.Dispose());
             _classFolderGeneratorUnits.ForEach(t => t.Dispose());
             
-            _entryScriptSettings.OnChangeFolderCountEvent -= ResetFolderUnits;
+            _entryScriptSettings.onChangeFolderCountEvent -= ResetFolderUnits;
         }
 
         public static FolderGenerator CreateInstance(EntryScriptGenerator entryScriptGenerator, EntryScriptSettings entryScriptSettings)

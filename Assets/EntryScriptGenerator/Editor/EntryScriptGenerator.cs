@@ -36,6 +36,7 @@ namespace EntryScriptGenerator.Editor
         {
             if (_entryScriptSettings != null) 
             {
+                _entryScriptSettings.onImportSettingsEvent -= OnImportSettings;
                 _entryScriptSettings.Dispose();
             }
 
@@ -55,6 +56,7 @@ namespace EntryScriptGenerator.Editor
             if (_entryScriptSettings == null)
             {
                 _entryScriptSettings = EntryScriptSettings.CreateInstance(this);
+                _entryScriptSettings.onImportSettingsEvent += OnImportSettings;
             }
             if (_scriptGenerator == null)
             {
@@ -64,6 +66,21 @@ namespace EntryScriptGenerator.Editor
             {
                 _folderGenerator = FolderGenerator.CreateInstance(this, _entryScriptSettings);
             }
+        }
+
+        private void OnImportSettings()
+        {
+            if (_scriptGenerator != null)
+            {
+                _scriptGenerator.Dispose();
+            }
+            _scriptGenerator = ScriptGenerator.CreateInstance(this, _entryScriptSettings);
+            
+            if (_folderGenerator != null)
+            {
+                _folderGenerator.Dispose();
+            }
+            _folderGenerator = FolderGenerator.CreateInstance(this, _entryScriptSettings);
         }
         
         private void OnGUI()

@@ -20,7 +20,6 @@ namespace EntryScriptGenerator.Editor
             }   
         }
         private SerializedObject _so;
-        
         protected abstract string SettingJsonPath { get; }
 
         protected void Initialize()

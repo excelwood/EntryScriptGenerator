@@ -26,7 +26,7 @@ namespace EntryScriptGenerator.Editor
         private EntryScriptSettings _entryScriptSettings;
         private Vector2 _scrollPosition = Vector2.zero;
         
-        protected override string SettingJsonPath => "Assets/EntryScriptGenerator/Editor/SaveData/ScriptGeneratorSettings.json";
+        protected override string SettingJsonPath => Constants.SaveDataFolderPath + "/ScriptGeneratorSettings.json";
 
         private void Initialize(EntryScriptGenerator entryScriptGenerator, EntryScriptSettings entryScriptSettings)
         {
