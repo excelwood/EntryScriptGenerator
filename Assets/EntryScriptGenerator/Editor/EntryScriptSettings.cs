@@ -66,8 +66,23 @@ namespace EntryScriptGenerator.Editor
         {
             So.Update();
             
-            // Common
+            
             EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
+            FoldersSetting();
+            GUILayout.Box("", EditorWindowUtility.CreateLineColorStyle(),GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
+            
+            SettingsFileOperation();
+            GUILayout.Box("", EditorWindowUtility.CreateLineColorStyle(),GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
+            
+            ToolMenuTab();
+            
+            EditorGUILayout.EndVertical();
+            
+            So.ApplyModifiedProperties();
+        }
+
+        private void FoldersSetting()
+        {
             GUILayout.Label("フォルダ構成", EditorStyles.boldLabel);
             GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
             {
@@ -97,8 +112,26 @@ namespace EntryScriptGenerator.Editor
                 EditorWindowUtility.DragAndDropFilePaths(So, rect, "classFolderNames", true);
             }
             GUILayout.Box("", GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
-            
-            // Select Tool
+        }
+
+        private void SettingsFileOperation()
+        {
+            GUILayout.Label("設定ファイル操作", EditorStyles.boldLabel);
+            GUILayout.Space(10);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Export")) {
+                
+            }
+            if (GUILayout.Button("Import")) {
+                
+            }
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(10);
+        }
+
+        private void ToolMenuTab()
+        {
+            GUILayout.Label("ツール選択", EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope()) {
                 GUILayout.FlexibleSpace();
                 // タブを描画する
@@ -109,10 +142,6 @@ namespace EntryScriptGenerator.Editor
             GUILayout.Box("", EditorWindowUtility.CreateLineColorStyle(), GUILayout.Width(_entryScriptGenerator.position.width), GUILayout.Height(1));
             
             GUILayout.Space(10);
-            
-            EditorGUILayout.EndVertical();
-            
-            So.ApplyModifiedProperties();
         }
     }
 }
