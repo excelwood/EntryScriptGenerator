@@ -38,7 +38,9 @@ namespace EntryScriptGenerator.Editor
         [SerializeField] private List<string> selectedClassDependencies = new();
 
         private string _unitName;
+        private FolderType _folderType;
         public string UnitName => _unitName;
+        public FolderType FolderType => _folderType;
         private EntryScriptSettings _entryScriptSettings;
         private FolderGenerator _folderGenerator;
         private ReorderableList _referenceReorderableList;
@@ -48,20 +50,21 @@ namespace EntryScriptGenerator.Editor
         private readonly List<string> _selectableInterfaceDependencies = new();
         private readonly List<string> _selectableClassDependencies = new();
         
-        protected override string SettingJsonPath => Constants.SaveDataFolderPath + "/FolderGenerateUnit" + _unitName + "Settings.json";
+        protected override string SettingJsonPath => Constants.SaveDataFolderPath + "/FolderGenerateUnit" + _folderType.ToString() + _unitName + "Settings.json";
         
-        public static FolderGeneratorUnit CreateInstance(EntryScriptSettings entryScriptSettings, FolderGenerator folderGenerator, string unitName)
+        public static FolderGeneratorUnit CreateInstance(EntryScriptSettings entryScriptSettings, FolderGenerator folderGenerator, string unitName, FolderType folderType)
         {
             var instance = CreateInstance<FolderGeneratorUnit>();
-            instance.Initialize(entryScriptSettings, folderGenerator, unitName);
+            instance.Initialize(entryScriptSettings, folderGenerator, unitName, folderType);
             return instance;
         }
 
-        private void Initialize(EntryScriptSettings entryScriptSettings, FolderGenerator folderGenerator, string unitName)
+        private void Initialize(EntryScriptSettings entryScriptSettings, FolderGenerator folderGenerator, string unitName, FolderType folderType)
         {
             _entryScriptSettings = entryScriptSettings;
             _folderGenerator = folderGenerator;
             _unitName = unitName;
+            _folderType = folderType;
             
             _selectableInterfaceDependencies.AddRange(_entryScriptSettings.InterfaceFolderNames);
             _selectableClassDependencies.AddRange(_entryScriptSettings.ClassFolderNames);
@@ -193,7 +196,7 @@ namespace EntryScriptGenerator.Editor
             So.ApplyModifiedProperties();
         }
 
-        public void PublishAssemblyDefinition(string targetPath, FolderType folderType)
+        public void PublishAssemblyDefinition(string targetPath)
         {
             if (!So.FindProperty("generateTarget").boolValue)
             {
@@ -202,7 +205,7 @@ namespace EntryScriptGenerator.Editor
             
             var asmdefJson = new AssemblyDefinitionJsonData();
             var fileName = _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." : "";
-            fileName += folderType == FolderType.Interface ? "Interfaces." + UnitName : UnitName;
+            fileName += _folderType == FolderType.Interface ? "Interfaces." + UnitName : UnitName;
             asmdefJson.name = fileName;
             asmdefJson.allowUnsafeCode = So.FindProperty("allowUnsafeCode").boolValue;
             asmdefJson.autoReferenced = So.FindProperty("autoReferenced").boolValue;

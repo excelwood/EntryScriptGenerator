@@ -83,12 +83,12 @@ namespace EntryScriptGenerator.Editor
             _classFolderGeneratorUnits.Clear();
             foreach (var interfaceFolderName in _entryScriptSettings.InterfaceFolderNames)
             {
-                var folderGeneratorUnit = FolderGeneratorUnit.CreateInstance(_entryScriptSettings, this, interfaceFolderName);
+                var folderGeneratorUnit = FolderGeneratorUnit.CreateInstance(_entryScriptSettings, this, interfaceFolderName, FolderType.Interface);
                 _interfaceFolderGeneratorUnits.Add(folderGeneratorUnit);
             }
             foreach (var classFolderName in _entryScriptSettings.ClassFolderNames)
             {
-                var folderGeneratorUnit = FolderGeneratorUnit.CreateInstance(_entryScriptSettings, this, classFolderName);
+                var folderGeneratorUnit = FolderGeneratorUnit.CreateInstance(_entryScriptSettings, this, classFolderName, FolderType.Class);
                 _classFolderGeneratorUnits.Add(folderGeneratorUnit);
             }
         }
@@ -193,7 +193,7 @@ namespace EntryScriptGenerator.Editor
                     {
                         var path = targetPathRoot + "/Interfaces/" + interfaceUnit.UnitName;
                         FileUtility.CreateDirectory(path);
-                        interfaceUnit.PublishAssemblyDefinition(path, FolderType.Interface);
+                        interfaceUnit.PublishAssemblyDefinition(path);
                     }
                 }
             
@@ -201,7 +201,7 @@ namespace EntryScriptGenerator.Editor
                 {
                     var path = targetPathRoot + "/" + classUnit.UnitName;
                     FileUtility.CreateDirectory(path);
-                    classUnit.PublishAssemblyDefinition(path, FolderType.Class);
+                    classUnit.PublishAssemblyDefinition(path);
                 }
             }
 
@@ -210,13 +210,13 @@ namespace EntryScriptGenerator.Editor
                 foreach (var interfaceUnit in _interfaceFolderGeneratorUnits)
                 {
                     var path = targetPathRoot + "/Interfaces/" + interfaceUnit.UnitName;
-                    interfaceUnit.PublishAssemblyDefinition(path, FolderType.Interface);
+                    interfaceUnit.PublishAssemblyDefinition(path);
                 }
             
                 foreach (var classUnit in _classFolderGeneratorUnits)
                 {
                     var path = targetPathRoot + "/" + classUnit.UnitName;
-                    classUnit.PublishAssemblyDefinition(path, FolderType.Class);
+                    classUnit.PublishAssemblyDefinition(path);
                 }
             }
             
