@@ -325,10 +325,13 @@ namespace EntryScriptGenerator.Editor
                 }
 
                 var interfaceIndex = classInterfaceIndexes[i];
+                var isNeedInterface = 0 <= interfaceIndex &&
+                                      interfaceIndex < _entryScriptSettings.InterfaceFolderNames.Count &&
+                                      interfaceActivates[interfaceIndex];
                 var path = classRootPath + "/" + _entryScriptSettings.ClassFolderNames[i];
-                var interfaceNameSpace = 0 <= interfaceIndex && interfaceIndex < _entryScriptSettings.InterfaceFolderNames.Count ? "using " + (interfaceRootPath + "/" + _entryScriptSettings.InterfaceFolderNames[interfaceIndex]).Replace("Assets/", "").Replace("Scripts/", "").Replace("/", ".") + ";" : "";
+                var interfaceNameSpace = isNeedInterface ? "using " + (interfaceRootPath + "/" + _entryScriptSettings.InterfaceFolderNames[interfaceIndex]).Replace("Assets/", "").Replace("Scripts/", "").Replace("/", ".") + ";" : "";
                 var nameSpace = path.Replace("Assets/", "").Replace("Scripts/", "").Replace("/", ".");
-                var interfaceName = 0 <= interfaceIndex && interfaceIndex < _entryScriptSettings.InterfaceFolderNames.Count ? ": " + "I" + prefix + interfaceSuffixNames[interfaceIndex] : "";
+                var interfaceName = isNeedInterface ? ": " + "I" + prefix + interfaceSuffixNames[interfaceIndex] : "";
                 var className = prefix + classSuffixNames[i];
                 var fileName = className + ".cs";
                 var assetPath = path+"/"+fileName;
