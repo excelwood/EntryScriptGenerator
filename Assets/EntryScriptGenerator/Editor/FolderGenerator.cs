@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.VersionControl;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -130,8 +131,6 @@ namespace EntryScriptGenerator.Editor
                         EditorGUILayout.PropertyField(So.FindProperty("generateTargetPath"), true);
                         EditorGUILayout.EndVertical();
                         EditorWindowUtility.DragAndDropFilePaths(So, rect, "generateTargetPath", false);
-
-                        
                     }
 
                     {
@@ -143,13 +142,14 @@ namespace EntryScriptGenerator.Editor
                     {
                         EditorGUILayout.BeginHorizontal(StyleData.CategoryGuiStyle);
                         GUILayout.Label("[" + generateTargetPath + "/" + generateFolderName + "]を設定に取り込む", EditorStyles.label);
+                        EditorGUI.BeginDisabledGroup(!Directory.Exists(generateTargetPath + "/" + generateFolderName));
                         if (GUILayout.Button("Load"))
                         {
                             LoadFolders(generateTargetPath, generateFolderName);
                         }
+                        EditorGUI.EndDisabledGroup();
                         EditorGUILayout.EndHorizontal();
                     }
-                    
                     
                     {
                         EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
@@ -194,14 +194,16 @@ namespace EntryScriptGenerator.Editor
 
         private void LoadFolders(string rootFolderPath, string targetFolderName)
         {
+            var targetFolderPath = rootFolderPath + "/" + targetFolderName;
+            
             foreach (var interfaceUnit in _interfaceFolderGeneratorUnits)
             {
-                interfaceUnit.LoadAssemblyDefinition(rootFolderPath + "/" + targetFolderName + "/Interfaces/" + interfaceUnit.UnitName);
+                interfaceUnit.LoadAssemblyDefinition(targetFolderPath + "/Interfaces/" + interfaceUnit.UnitName);
             }
             
             foreach (var classUnit in _classFolderGeneratorUnits)
             {
-                classUnit.LoadAssemblyDefinition(rootFolderPath + "/" + targetFolderName + "/" + classUnit.UnitName);
+                classUnit.LoadAssemblyDefinition(targetFolderPath + "/" + classUnit.UnitName);
             }
         }
 

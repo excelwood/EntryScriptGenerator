@@ -10,30 +10,6 @@ using UnityEditor.UIElements;
 
 namespace EntryScriptGenerator.Editor
 {
-    public class MessageWindow : EditorWindow
-    {
-        private string _message;
-        
-        public void SetMessage(string message)
-        {
-            _message = message;
-        }
-
-        private void OnGUI()
-        {
-            GUILayout.Label(_message, EditorStyles.boldLabel);
-            if (GUILayout.Button("OK"))
-            {
-                Close();
-            }
-        }
-
-        private void OnLostFocus()
-        {
-            Close();
-        }
-    }
-    
     public class EntryScriptSettings : GeneratorUnit
     {
         [SerializeField] private List<string> interfaceFolderNames = new();
@@ -196,10 +172,7 @@ namespace EntryScriptGenerator.Editor
         private void SaveSettings(Vector2 popupPosition)
         {
             _entryScriptGenerator.SaveSettings();
-            _messageWindow = CreateInstance<MessageWindow>();
-            _messageWindow.SetMessage("設定を保存しました");
-            _messageWindow.position = new Rect(popupPosition, new Vector2(200, 50));
-            _messageWindow.ShowPopup();
+            MessageWindow.ShowMessageWindow("設定を保存しました", popupPosition);
         }
 
         private void ToolMenuTab()
