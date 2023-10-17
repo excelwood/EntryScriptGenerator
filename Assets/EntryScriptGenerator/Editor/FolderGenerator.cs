@@ -130,6 +130,8 @@ namespace EntryScriptGenerator.Editor
                         EditorGUILayout.PropertyField(So.FindProperty("generateTargetPath"), true);
                         EditorGUILayout.EndVertical();
                         EditorWindowUtility.DragAndDropFilePaths(So, rect, "generateTargetPath", false);
+
+                        
                     }
 
                     {
@@ -137,6 +139,17 @@ namespace EntryScriptGenerator.Editor
                         EditorGUILayout.PropertyField(So.FindProperty("generateFolderName"), true);
                         EditorGUILayout.EndVertical();
                     }
+
+                    {
+                        EditorGUILayout.BeginHorizontal(StyleData.CategoryGuiStyle);
+                        GUILayout.Label("[" + generateTargetPath + "/" + generateFolderName + "]を設定に取り込む", EditorStyles.label);
+                        if (GUILayout.Button("Load"))
+                        {
+                            LoadFolders(generateTargetPath, generateFolderName);
+                        }
+                        EditorGUILayout.EndHorizontal();
+                    }
+                    
                     
                     {
                         EditorGUILayout.BeginVertical(StyleData.CategoryGuiStyle);
@@ -176,6 +189,19 @@ namespace EntryScriptGenerator.Editor
             GUILayout.Space(10);
             if (GUILayout.Button("出力する")) {
                 Execute();
+            }
+        }
+
+        private void LoadFolders(string rootFolderPath, string targetFolderName)
+        {
+            foreach (var interfaceUnit in _interfaceFolderGeneratorUnits)
+            {
+                interfaceUnit.LoadAssemblyDefinition(rootFolderPath + "/" + targetFolderName + "/Interfaces/" + interfaceUnit.UnitName);
+            }
+            
+            foreach (var classUnit in _classFolderGeneratorUnits)
+            {
+                classUnit.LoadAssemblyDefinition(rootFolderPath + "/" + targetFolderName + "/" + classUnit.UnitName);
             }
         }
 

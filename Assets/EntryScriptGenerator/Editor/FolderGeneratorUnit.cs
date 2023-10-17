@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -196,6 +197,18 @@ namespace EntryScriptGenerator.Editor
             So.ApplyModifiedProperties();
         }
 
+        private string GenerateAssemblyDefinitionFileName(bool isIncludeExt)
+        {
+            var fileName = _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." : "";
+            fileName += _folderType == FolderType.Interface ? "Interfaces." + UnitName : UnitName;
+            if (isIncludeExt)
+            {
+                fileName += ".asmdef";
+            }
+
+            return fileName;
+        }
+
         public void PublishAssemblyDefinition(string targetPath)
         {
             if (!So.FindProperty("generateTarget").boolValue)
@@ -204,8 +217,7 @@ namespace EntryScriptGenerator.Editor
             }
             
             var asmdefJson = new AssemblyDefinitionJsonData();
-            var fileName = _folderGenerator.GenerateAsmdefPrefix.Length > 0 ? _folderGenerator.GenerateAsmdefPrefix + "." : "";
-            fileName += _folderType == FolderType.Interface ? "Interfaces." + UnitName : UnitName;
+            var fileName = GenerateAssemblyDefinitionFileName(false);
             asmdefJson.name = fileName;
             asmdefJson.allowUnsafeCode = So.FindProperty("allowUnsafeCode").boolValue;
             asmdefJson.autoReferenced = So.FindProperty("autoReferenced").boolValue;
@@ -271,6 +283,56 @@ namespace EntryScriptGenerator.Editor
             var writer = new StreamWriter(path, false);
             writer.Write(json);
             writer.Close();
+        }
+
+        public void LoadAssemblyDefinition(string targetPath)
+        {
+            var assemblyDefinitionPath = targetPath + "/" + GenerateAssemblyDefinitionFileName(true);
+            if (!File.Exists(assemblyDefinitionPath))
+            {
+                return;
+            }
+            var reader = new StreamReader(assemblyDefinitionPath);
+            var assemblyDefinitionJsonData = JsonUtility.FromJson<AssemblyDefinitionJsonData>(reader.ReadToEnd());
+            allowUnsafeCode = assemblyDefinitionJsonData.allowUnsafeCode;
+            autoReferenced = assemblyDefinitionJsonData.autoReferenced;
+            noEngineReferences = assemblyDefinitionJsonData.noEngineReferences;
+            rootNamespace = assemblyDefinitionJsonData.rootNamespace;
+
+            referenceGuids.Clear();
+            references.Clear();
+            selectedInterfaceDependencies.Clear();
+            selectedClassDependencies.Clear();
+            foreach (var referenceGuid in assemblyDefinitionJsonData.references)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(referenceGuid);
+                if (path.Contains(_folderGenerator.GenerateFolderRoot))
+                {
+                    if (path.Contains("Interfaces"))
+                    {
+                        foreach (var interfaceName in _entryScriptSettings.InterfaceFolderNames)
+                        {
+                            if (!path.Contains(interfaceName)) continue;
+                            selectedInterfaceDependencies.Add(interfaceName);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        foreach (var className in _entryScriptSettings.ClassFolderNames)
+                        {
+                            if (!path.Contains(className)) continue;
+                            selectedInterfaceDependencies.Add(className);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    referenceGuids.Add(referenceGuid);
+                    references.Add(AssetDatabase.LoadAssetAtPath<AssemblyDefinitionAsset>(AssetDatabase.GUIDToAssetPath(referenceGuid)));
+                }
+            }
         }
     }
 }
