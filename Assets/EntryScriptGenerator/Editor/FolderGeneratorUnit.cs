@@ -294,6 +294,7 @@ namespace EntryScriptGenerator.Editor
             }
             var reader = new StreamReader(assemblyDefinitionPath);
             var assemblyDefinitionJsonData = JsonUtility.FromJson<AssemblyDefinitionJsonData>(reader.ReadToEnd());
+            reader.Close();
             allowUnsafeCode = assemblyDefinitionJsonData.allowUnsafeCode;
             autoReferenced = assemblyDefinitionJsonData.autoReferenced;
             noEngineReferences = assemblyDefinitionJsonData.noEngineReferences;
@@ -305,7 +306,8 @@ namespace EntryScriptGenerator.Editor
             selectedClassDependencies.Clear();
             foreach (var referenceGuid in assemblyDefinitionJsonData.references)
             {
-                var path = AssetDatabase.GUIDToAssetPath(referenceGuid.Replace("GUID:", ""));
+                var guid = referenceGuid.Replace("GUID:", "");
+                var path = AssetDatabase.GUIDToAssetPath(guid);
                 if (path.Contains(_folderGenerator.GenerateFolderRoot))
                 {
                     if (path.Contains("Interfaces"))
@@ -329,8 +331,8 @@ namespace EntryScriptGenerator.Editor
                 }
                 else
                 {
-                    referenceGuids.Add(referenceGuid);
-                    references.Add(AssetDatabase.LoadAssetAtPath<AssemblyDefinitionAsset>(AssetDatabase.GUIDToAssetPath(referenceGuid)));
+                    referenceGuids.Add(guid);
+                    references.Add(AssetDatabase.LoadAssetAtPath<AssemblyDefinitionAsset>(AssetDatabase.GUIDToAssetPath(guid)));
                 }
             }
         }
