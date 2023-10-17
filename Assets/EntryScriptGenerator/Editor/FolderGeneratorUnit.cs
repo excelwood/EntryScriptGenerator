@@ -290,6 +290,7 @@ namespace EntryScriptGenerator.Editor
             var assemblyDefinitionPath = targetPath + "/" + GenerateAssemblyDefinitionFileName(true);
             if (!File.Exists(assemblyDefinitionPath))
             {
+                Debug.LogError("[" + assemblyDefinitionPath + "]が見つかりませんでした");
                 return;
             }
             var reader = new StreamReader(assemblyDefinitionPath);
