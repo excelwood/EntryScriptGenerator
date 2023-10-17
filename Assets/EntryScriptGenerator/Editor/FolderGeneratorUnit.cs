@@ -305,7 +305,7 @@ namespace EntryScriptGenerator.Editor
             selectedClassDependencies.Clear();
             foreach (var referenceGuid in assemblyDefinitionJsonData.references)
             {
-                var path = AssetDatabase.GUIDToAssetPath(referenceGuid);
+                var path = AssetDatabase.GUIDToAssetPath(referenceGuid.Replace("GUID:", ""));
                 if (path.Contains(_folderGenerator.GenerateFolderRoot))
                 {
                     if (path.Contains("Interfaces"))
@@ -322,7 +322,7 @@ namespace EntryScriptGenerator.Editor
                         foreach (var className in _entryScriptSettings.ClassFolderNames)
                         {
                             if (!path.Contains(className)) continue;
-                            selectedInterfaceDependencies.Add(className);
+                            selectedClassDependencies.Add(className);
                             break;
                         }
                     }
